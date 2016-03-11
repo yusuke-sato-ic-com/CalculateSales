@@ -1,4 +1,4 @@
-package jp.co.iccom.sato_yusuke.calculate_sales.TrainingFile;
+package jp.co.iccom.sato_yusuke.calculate_sales;
 
 import java.io.*;
 import java.util.*;;
