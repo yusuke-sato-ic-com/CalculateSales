@@ -50,12 +50,12 @@ public class CalculateSales {
 	//	System.out.println(branchmap.entrySet());
 	//	System.out.println(commoditymap.entrySet());
 
-
 		// ディレクトリ内のファイル一覧を取得
 		String path = args[0];
 		File dir = new File(path);
 		File[] files = dir.listFiles(); // dir内のファイルを配列に格納
 		ArrayList<String> salesfiles = new ArrayList<String>();
+		ArrayList<Integer> salesNo = new ArrayList<Integer>();
 
 		for (int i = 0; i < files.length; i++) { // 配列内の要素の数だけループし一覧を取得
 			File Infile = files[i];
@@ -68,24 +68,26 @@ public class CalculateSales {
 					salesfiles.add(lineIn);
 					}
 					brI.close();
-
 				} catch (IOException e ) {
 					System.out.println(e);
 				}
 				String[] salessplit = Infile.getName().split("\\."); 	// "."の前には\\が必要
 			//	System.out.println(salessplit[0]);
-			//	salessplit[0]
-				int No = Integer.parseInt(salessplit[0]);
-				System.out.println(No);
+				salesNo.add(Integer.parseInt(salessplit[0]));
+			//	System.out.println(salesNo.get(i));
 			}
 		}
-	//	System.out.println(salesfiles);
+//		System.out.println(salesNo.get(0));
+//		System.out.println(salesNo.get(1));
+//		System.out.println(salesNo.get(2));
 
-			// ファイル名を分割し、リストに格納
-			//	while (() != null) {
-
-
-			// n+1 で連番がチェックできる
-			// ループの終了をきちんと
+		for (int i = 0; i < salesNo.size(); i++) {
+		//	int sn = salesNo.get(i);
+		//	System.out.println(sn);
+			if(salesNo.get(i) != i + 1){
+				System.out.println("売上ファイル名が連番になっていません");
+				return;
+			}
+		}
 	}
 }
