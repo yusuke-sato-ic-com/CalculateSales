@@ -47,47 +47,64 @@ public class CalculateSales {
 		} catch(IOException e)  { // 例外を受け取る
 			System.out.println("予期せぬエラーが発生しました");
 		}
-	//	System.out.println(branchmap.entrySet());
-	//	System.out.println(commoditymap.entrySet());
+
+
 
 		// ディレクトリ内のファイル一覧を取得
 		String path = args[0];
 		File dir = new File(path);
 		File[] files = dir.listFiles(); // dir内のファイルを配列に格納
-		ArrayList<String> salesfiles = new ArrayList<String>();
-		ArrayList<Integer> salesNo = new ArrayList<Integer>();
 
+		ArrayList<String> rcdfiles = new ArrayList<String>(); // rcdファイルを格納
+		ArrayList<Integer> salesNo = new ArrayList<Integer>(); //
+
+		// rcdファイルの抽出
 		for (int i = 0; i < files.length; i++) { // 配列内の要素の数だけループし一覧を取得
-			File Infile = files[i];
-			if (Infile.getName().endsWith(".rcd")) {
-				try {
-					FileReader frI = new FileReader(Infile);
-					BufferedReader brI = new BufferedReader(frI);
-					String lineIn;
-					while ((lineIn = brI.readLine()) != null) {
-					salesfiles.add(lineIn);
-					}
-					brI.close();
-				} catch (IOException e ) {
-					System.out.println(e);
-				}
-				String[] salessplit = Infile.getName().split("\\."); 	// "."の前には\\が必要
-			//	System.out.println(salessplit[0]);
+			File infile = files[i];
+			// 精度を上げる必要あり
+			if (infile.getName().endsWith(".rcd")) {
+				rcdfiles.add(infile.getName());
+				String[] salessplit = infile.getName().split("\\."); 	// "."の前には\\が必要
 				salesNo.add(Integer.parseInt(salessplit[0]));
-			//	System.out.println(salesNo.get(i));
 			}
 		}
-//		System.out.println(salesNo.get(0));
-//		System.out.println(salesNo.get(1));
-//		System.out.println(salesNo.get(2));
 
+		// 連番チェック
 		for (int i = 0; i < salesNo.size(); i++) {
-		//	int sn = salesNo.get(i);
-		//	System.out.println(sn);
 			if(salesNo.get(i) != i + 1){
 				System.out.println("売上ファイル名が連番になっていません");
 				return;
 			}
 		}
+
+		// rcdファイルの読み込み
+		// Mapへ格納
+		HashMap<String, Integer> rcdbrachsalesmap = new HashMap<String, Integer>();
+		HashMap<String, Integer> rcdcommoditysalesmap = new HashMap<String, Integer>();
+
+		for (int i = 0; i < rcdfiles.size(); i++) {
+			ArrayList<String> rcddet = new ArrayList<String>();
+			try {
+				FileReader fr = new FileReader(dir + "\\"+ rcdfiles.get(i));
+				BufferedReader br = new BufferedReader(fr);
+				String rcdlinein;
+				while ((rcdlinein = br.readLine()) != null) {
+					rcddet.add(rcdlinein);
+
+				}
+				br.close();
+
+				rcdbrachsalesmap.put(rcddet.get(0) , Integer.parseInt(rcddet.get(2)));
+				rcdcommoditysalesmap.put(rcddet.get(1), Integer.parseInt(rcddet.get(2)));
+
+				//	  条件分岐で加算する方法
+				//	○初期値０円のMapに加算する方法
+
+			} catch (IOException e ) {
+				System.out.println(e);
+			}
+		}
+	//	System.out.println(rcdbrachsalesmap);
+	//	System.out.println(rcdcommoditysalesmap);
 	}
 }
