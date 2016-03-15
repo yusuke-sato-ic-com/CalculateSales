@@ -1,7 +1,9 @@
 package jp.co.iccom.sato_yusuke.calculate_sales;
 
 import java.io.*;
-import java.util.*;;
+import java.util.*;
+
+import javax.activation.CommandMap;;
 
 public class CalculateSales {
 	public static void main(String[] args) {
@@ -22,7 +24,6 @@ public class CalculateSales {
 				branchmap.put(branchData[0], branchData[1]);
 			}
 			br1.close(); //ストリームを閉じる
-		//	System.out.println(map1.entrySet());
 		} catch(FileNotFoundException fe)  { // 例外を受け取る
 				System.out.println("支店定義ファイルは存在しません");
 				return;
@@ -40,15 +41,12 @@ public class CalculateSales {
 				commoditymap.put(commodityData[0], commodityData[1]);
 			}
 			br2.close();
-		//	System.out.println(map2.entrySet());
 		} catch(FileNotFoundException fe)  { // 例外を受け取る
 			System.out.println("商品定義ファイルは存在しません");
 			return;
 		} catch(IOException e)  { // 例外を受け取る
 			System.out.println("予期せぬエラーが発生しました");
 		}
-
-
 
 		// ディレクトリ内のファイル一覧を取得
 		String path = args[0];
@@ -77,34 +75,46 @@ public class CalculateSales {
 			}
 		}
 
-		// rcdファイルの読み込み
-		// Mapへ格納
+		// 支店コード・商品コードをkey、金額をvalueに格納する集計用Mapを作成
 		HashMap<String, Integer> rcdbrachsalesmap = new HashMap<String, Integer>();
 		HashMap<String, Integer> rcdcommoditysalesmap = new HashMap<String, Integer>();
 
+		// 支店コードをキーに、0をvalueに集計用Mapへ格納
+		for(Map.Entry<String, String> e : branchmap.entrySet()) { // 拡張for文で、支店定義ファイルMapよりペアを取得
+			rcdbrachsalesmap.put(e.getKey(), 0);
+		}
+
+		// 商品コードをkeyに、0をvalueに集計用Mapへ格納
+		for(Map.Entry<String, String> e : commoditymap.entrySet()) { // 拡張for文で、商品定義ファイルMapよりペアを取得
+			rcdcommoditysalesmap.put(e.getKey(), 0);
+		}
+
+		// rcdファイルの読み込み
+		// Mapへ格納
 		for (int i = 0; i < rcdfiles.size(); i++) {
-			ArrayList<String> rcddet = new ArrayList<String>();
+			ArrayList<String> rcddata = new ArrayList<String>();
 			try {
 				FileReader fr = new FileReader(dir + "\\"+ rcdfiles.get(i));
 				BufferedReader br = new BufferedReader(fr);
 				String rcdlinein;
 				while ((rcdlinein = br.readLine()) != null) {
-					rcddet.add(rcdlinein);
+					rcddata.add(rcdlinein);
 
 				}
 				br.close();
 
-				rcdbrachsalesmap.put(rcddet.get(0) , Integer.parseInt(rcddet.get(2)));
-				rcdcommoditysalesmap.put(rcddet.get(1), Integer.parseInt(rcddet.get(2)));
-
-				//	  条件分岐で加算する方法
-				//	○初期値０円のMapに加算する方法
+			//	rcdbrachsalesmap.put(rcddata.get(0) , Integer.parseInt(rcddata.get(2)));
+			//	rcdcommoditysalesmap.put(rcddata.get(1), Integer.parseInt(rcddata.get(2)));
 
 			} catch (IOException e ) {
 				System.out.println(e);
 			}
 		}
-	//	System.out.println(rcdbrachsalesmap);
-	//	System.out.println(rcdcommoditysalesmap);
+		System.out.println(rcdbrachsalesmap);
+		System.out.println(rcdcommoditysalesmap);
+
+	//	System.out.println(branchmap.keySet());
+	//	System.out.println(commoditymap.keySet());
+
 	}
 }
