@@ -2,6 +2,7 @@ package jp.co.iccom.sato_yusuke.calculate_sales;
 
 import java.io.*;
 import java.util.*;
+import java.util.Map.Entry;
 
 public class CalculateSales {
 	public static void main(String[] args) {
@@ -123,7 +124,54 @@ public class CalculateSales {
 				rcdCommoditySalesMap.put(commodityCodes, commodityAmount);
 			}
 		}
-		System.out.println(rcdBranchSalesMap);
-		System.out.println(rcdCommoditySalesMap);
+
+	//	System.out.println(rcdBranchSalesMap);
+	//	System.out.println(rcdCommoditySalesMap);
+
+	//	System.out.println(branchMap.entrySet());
+	//	System.out.println(commodityMap.entrySet());
+
+
+
+		// 合計金額の降順に並び替える
+		// ソート用List生成
+		List<Map.Entry<String,Integer>> branchSales =
+				new ArrayList<Map.Entry<String,Integer>>(rcdBranchSalesMap.entrySet());
+		Collections.sort(branchSales, new Comparator<Map.Entry<String,Integer>>() {
+
+			@Override
+			public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {
+			// TODO 自動生成されたメソッド・スタブ
+			return  ((Integer)o2.getValue()).compareTo((Integer)o1.getValue());
+			}
+		});
+
+		// 集計結果を出力する為に
+		// 支店別集計ファイルの作成
+		File newBranchOut = new File(args[0],"branch.out");
+		try{
+			if (newBranchOut.createNewFile()){
+				System.out.println("さて、ファイルの中身は何かな？");
+			}else{
+				System.out.println("ファイルの作成に失敗しました");
+			}
+		} catch(IOException e) {
+			System.out.println(e);
+		}
+
+		// 支店別ファイルに出力
+		for (Entry<String,Integer> s : branchSales) { // keyとvalueを拡張for文で取得
+			if (branchMap.containsKey(s.getKey())) {
+		//		System.out.println(s.getKey() + "," + branchMap.get(s.getKey()) + "," + s.getValue());
+			}
+			try {
+				FileWriter fw = new FileWriter(newBranchOut);
+				BufferedWriter bw = new BufferedWriter(fw);
+				bw.write(s.getKey() + "," + branchMap.get(s.getKey()) + "," + s.getValue());
+				bw.close(); //ストリームを閉じる
+			} catch(IOException e)  { // 例外を受け取る
+				System.out.println(e);
+			}
+		}
 	}
 }
