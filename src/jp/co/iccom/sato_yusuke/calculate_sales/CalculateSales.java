@@ -20,6 +20,17 @@ public class CalculateSales {
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] branchData = line.split(",");
+				// 正規表現によるフォーマットチェック
+//				System.out.println(branchData[0]);
+//				System.out.println(branchData[1]);
+				if (!branchData[0].matches("^\\d{3}$")) {
+					System.out.println( "支店定義ファイルのフォーマットが不正です" );
+					return;
+				}
+				if (branchData[1].matches(",|\n")) {
+					System.out.println( "支店定義ファイルのフォーマットが不正です" );
+					return;
+				}
 				branchMap.put(branchData[0], branchData[1]);
 			}
 			br.close(); //ストリームを閉じる
@@ -38,6 +49,14 @@ public class CalculateSales {
 			while ((line = br.readLine()) != null) {
 				String[] commodityData = line.split(",");
 //			//	ここで集計用Mapの初期値0を格納した方がすっきりする
+				if (!commodityData[0].matches("^\\w{3}\\d{5}$")) {
+					System.out.println( "商品定義ファイルのフォーマットが不正です" );
+					return;
+				}
+				if (commodityData[1].matches(",|\n")) {
+					System.out.println( "商品定義ファイルのフォーマットが不正です" );
+					return;
+				}
 				commodityMap.put(commodityData[0], commodityData[1]);
 			}
 			br.close();
@@ -47,6 +66,7 @@ public class CalculateSales {
 		} catch(IOException e)  { // 例外を受け取る
 			System.out.println("予期せぬエラーが発生しました");
 		}
+
 
 		// 指定ディレクトリ内のファイル一覧を取得
 		String path = args[0];
@@ -98,11 +118,18 @@ public class CalculateSales {
 				FileReader fr = new FileReader(dir + "\\"+ rcdFiles.get(i));
 				BufferedReader br = new BufferedReader(fr);
 				String rcdLineInput;
+				int lineCount = 0;
 				while ((rcdLineInput = br.readLine()) != null) {
+					// 売上ファイルの中身が４行以上の場合のエラー
+					lineCount++;
+			//		System.out.println(lineCount);
+					if(lineCount >= 4) {
+						System.out.println("<" + rcdFiles.get(i) + ">のフォーマットが不正です");
+						return;
+					}
 					rcdDataList.add(rcdLineInput);
 				}
 				br.close();
-
 			} catch (IOException e ) {
 				System.out.println("予期せぬエラーが発生しました");
 			}
@@ -117,11 +144,33 @@ public class CalculateSales {
 			if (rcdBranchSalesMap.containsKey(branchCodes)) {
 				int branchAmount = rcdBranchSalesMap.get(branchCodes) + amount;
 				rcdBranchSalesMap.put(branchCodes, branchAmount);
+
+				// 合計金額が10桁を超えた場合のエラー
+				int keta = Integer.toString(branchAmount).length();
+				if(keta >= 10) {
+					System.out.println("合計金額が10桁を超えました");
+					return;
+				}
+			// 支店に該当がない場合のエラー
+			} else {
+				System.out.println("<" + rcdFiles.get(i) + ">の支店コードが不正です");
+				return;
 			}
 
 			if (rcdCommoditySalesMap.containsKey(commodityCodes)) {
 				int commodityAmount = rcdCommoditySalesMap.get(commodityCodes) + amount;
 				rcdCommoditySalesMap.put(commodityCodes, commodityAmount);
+
+				// 合計金額が10桁を超えた場合のエラー表示
+				int keta = Integer.toString(commodityAmount).length();
+				if(keta >= 10) {
+					System.out.println("合計金額が10桁を超えました");
+					return;
+				}
+			// 商品に該当がない場合のエラー
+			} else {
+				System.out.println("<" + rcdFiles.get(i) + ">の商品コードが不正です");
+				return;
 			}
 		}
 
