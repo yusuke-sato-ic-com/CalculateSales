@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class CalculateSales {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		// コマンドライン引数で指定したディレクトリより、定義ファイルを読み込む
 		// ディレクトリまでのパス指定
 		File branch = new File(args[0],"branch.lst"); // Fileオブジェクトの生成
@@ -14,57 +14,63 @@ public class CalculateSales {
 		HashMap<String, String> commodityMap = new HashMap<String, String>();
 
 		// 支店定義ファイルの読み込み
+		FileReader fr1 = new FileReader(branch);
+		BufferedReader br1 = new BufferedReader(fr1);
 		try {
-			FileReader fr = new FileReader(branch);
-			BufferedReader br = new BufferedReader(fr);
-			String line;
-			while ((line = br.readLine()) != null) {
-				String[] branchData = line.split(",");
+			String line1;
+			while ((line1 = br1.readLine()) != null) {
+				String[] branchData = line1.split(",");
 				// 正規表現によるフォーマットチェック
 //				System.out.println(branchData[0]);
 //				System.out.println(branchData[1]);
-				if (!branchData[0].matches("^\\d{3}$")) {
-					System.out.println( "支店定義ファイルのフォーマットが不正です" );
-					return;
-				}
-				if (branchData[1].matches(",|\n")) {
+				if (!branchData[0].matches("^\\d{3}$") || branchData.length > 2) {
 					System.out.println( "支店定義ファイルのフォーマットが不正です" );
 					return;
 				}
 				branchMap.put(branchData[0], branchData[1]);
 			}
-			br.close(); //ストリームを閉じる
+			br1.close(); //ストリームを閉じる
 		} catch(FileNotFoundException fe)  { // 例外を受け取る
 				System.out.println("支店定義ファイルは存在しません");
 				return;
 		} catch(IOException e)  { // 例外を受け取る
 			System.out.println("予期せぬエラーが発生しました");
+		} finally {
+			try {
+				br1.close();
+			} catch (IOException e1) {
+				// TODO 自動生成された catch ブロック
+				e1.printStackTrace();
+			}
 		}
 
+
 		// 商品定義ファイルの読み込み
+		FileReader fr2 = new FileReader(commodity);
+		BufferedReader br2 = new BufferedReader(fr2);
 		try {
-			FileReader fr = new FileReader(commodity);
-			BufferedReader br = new BufferedReader(fr);
-			String line;
-			while ((line = br.readLine()) != null) {
-				String[] commodityData = line.split(",");
+			String line2;
+			while ((line2 = br2.readLine()) != null) {
+				String[] commodityData = line2.split(",");
 //			//	ここで集計用Mapの初期値0を格納した方がすっきりする
-				if (!commodityData[0].matches("^\\w{3}\\d{5}$")) {
-					System.out.println( "商品定義ファイルのフォーマットが不正です" );
-					return;
-				}
-				if (commodityData[1].matches(",|\n")) {
+				if (!commodityData[0].matches("^\\w{8}$") || commodityData.length > 2 ) {
 					System.out.println( "商品定義ファイルのフォーマットが不正です" );
 					return;
 				}
 				commodityMap.put(commodityData[0], commodityData[1]);
 			}
-			br.close();
-		} catch(FileNotFoundException fe)  { // 例外を受け取る
+		} catch (FileNotFoundException fe)  { // 例外を受け取る
 			System.out.println("商品定義ファイルは存在しません");
 			return;
-		} catch(IOException e)  { // 例外を受け取る
+		} catch (IOException e)  { // 例外を受け取る
 			System.out.println("予期せぬエラーが発生しました");
+		} finally {
+			try {
+				br2.close();
+			} catch (IOException e2) {
+				// TODO 自動生成された catch ブロック
+				e2.printStackTrace();
+			}
 		}
 
 
@@ -79,14 +85,13 @@ public class CalculateSales {
 		// rcdファイルの抽出
 		for (int i = 0; i < files.length; i++) { // 配列内の要素の数だけループし一覧を取得
 			File inFile = files[i];
-//			// 精度を上げる必要あり
-			if (inFile.getName().endsWith(".rcd")) {
+			if (!inFile.getName().matches("^\\d{8}$") && inFile.getName().endsWith(".rcd")) {
+			//	System.out.println(inFile.getName());
 				rcdFiles.add(inFile.getName());
 				String[] salesSplit = inFile.getName().split("\\."); 	// "."の前には\\が必要
 				salesNo.add(Integer.parseInt(salesSplit[0]));
 			}
 		}
-
 		// 連番エラーのチェック
 		for (int i = 0; i < salesNo.size(); i++) {
 			if(salesNo.get(i) != i + 1){
@@ -95,7 +100,7 @@ public class CalculateSales {
 			}
 		}
 
-//		// 定義ファイルの格納時点にまとめた方がすっきりする
+//		// 定義ファイルの格納時にまとめた方がすっきりする
 		// 支店コード・商品コードをkey、金額をvalueに格納する集計用Mapを作成
 		HashMap<String, Integer> rcdBranchSalesMap = new HashMap<String, Integer>();
 		HashMap<String, Integer> rcdCommoditySalesMap = new HashMap<String, Integer>();
@@ -120,7 +125,7 @@ public class CalculateSales {
 				String rcdLineInput;
 				int lineCount = 0;
 				while ((rcdLineInput = br.readLine()) != null) {
-					// 売上ファイルの中身が４行以上の場合のエラー
+					// 売上ファイルの中身が4行以上の場合のエラー
 					lineCount++;
 			//		System.out.println(lineCount);
 					if(lineCount >= 4) {
@@ -137,17 +142,17 @@ public class CalculateSales {
 			// 該当コード毎に売上金額を格納、加算
 			String branchCodes = rcdDataList.get(0);
 			String commodityCodes = rcdDataList.get(1);
-			int amount = Integer.parseInt(rcdDataList.get(2));
+			long amount = Long.parseLong(rcdDataList.get(2));
 //			int型は桁数の問題あり
 
 //			// 1つにまとめた方がいい？
 			if (rcdBranchSalesMap.containsKey(branchCodes)) {
-				int branchAmount = rcdBranchSalesMap.get(branchCodes) + amount;
-				rcdBranchSalesMap.put(branchCodes, branchAmount);
+				long branchAmount = rcdBranchSalesMap.get(branchCodes) + amount;
+				rcdBranchSalesMap.put(branchCodes, (int) branchAmount);
 
 				// 合計金額が10桁を超えた場合のエラー
-				int keta = Integer.toString(branchAmount).length();
-				if(keta >= 10) {
+				int keta = Integer.toString((int) branchAmount).length();
+				if(keta >= 11) {
 					System.out.println("合計金額が10桁を超えました");
 					return;
 				}
@@ -158,12 +163,12 @@ public class CalculateSales {
 			}
 
 			if (rcdCommoditySalesMap.containsKey(commodityCodes)) {
-				int commodityAmount = rcdCommoditySalesMap.get(commodityCodes) + amount;
-				rcdCommoditySalesMap.put(commodityCodes, commodityAmount);
+				long commodityAmount = rcdCommoditySalesMap.get(commodityCodes) + amount;
+				rcdCommoditySalesMap.put(commodityCodes, (int) commodityAmount);
 
 				// 合計金額が10桁を超えた場合のエラー表示
-				int keta = Integer.toString(commodityAmount).length();
-				if(keta >= 10) {
+				int keta = Integer.toString((int) commodityAmount).length();
+				if(keta >= 11) {
 					System.out.println("合計金額が10桁を超えました");
 					return;
 				}
@@ -243,8 +248,8 @@ public class CalculateSales {
 					bw.newLine();
 				}
 			}
-			bw.close();
-			} catch(IOException e)  {
+		bw.close();
+		} catch(IOException e)  {
 				System.out.println("予期せぬエラーが発生しました");
 		}
 	}
