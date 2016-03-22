@@ -208,7 +208,7 @@ public class CalculateSales {
 		return true;
 	}
 
-	//降順ソート ソート用のComparatorインスタンスを第二パラメータ
+	//降順ソート
 	static List<Map.Entry<String,Long>> salesListSort(HashMap<String,Long> map) {
 			List<Map.Entry<String,Long>> sales = new ArrayList<Map.Entry<String,Long>>(map.entrySet());
 		Collections.sort(sales, new Comparator<Map.Entry<String,Long>>() {
