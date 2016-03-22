@@ -22,7 +22,7 @@ public class CalculateSales {
 	public static void main(String[] args) throws FileNotFoundException,IOException {
 		// コマンドライン引数で指定したディレクトリより、定義ファイルを読み込む
 		// ディレクトリまでのパス指定
-		if( args.length == 0) { // コマンドライン引数に値がない場合
+		if( args.length != 1) { // コマンドライン引数に値がない場合
 			System.out.println(unknownError);
 			return;
 		}
@@ -172,10 +172,9 @@ public class CalculateSales {
 			}
 			// 売上ファイルの中身が4行以上の場合のエラー
 			if((rcdDataList.size() != 3) || (!rcdDataList.get(2).matches("^\\d{0,10}$"))) {
-				System.out.println("<" + fileName + ">のフォーマットが不正です");
+				System.out.println(fileName + "のフォーマットが不正です");
 				return false;
 			}
-
 		} catch (IOException e) {
 			System.out.println(unknownError);
 			return false;
@@ -194,7 +193,7 @@ public class CalculateSales {
 	// 【メソッド】合計金額の桁数エラーチェック
 	static boolean digitCheck(HashMap<String, Long> codeSalesMap, String code,long amount, String fileName, String str){
 		if (!codeSalesMap.containsKey(code)) {
-			System.out.println("<" + fileName + ">の" + str + "コードが不正です");
+			System.out.println(fileName + "の" + str + "コードが不正です");
 			return false;
 		}
 		long totalAmount = codeSalesMap.get(code) + amount;
