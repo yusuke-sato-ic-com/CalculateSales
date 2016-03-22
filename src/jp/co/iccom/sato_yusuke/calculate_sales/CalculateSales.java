@@ -38,14 +38,11 @@ public class CalculateSales {
 		HashMap<String, Long> rcdBranchSalesMap = new HashMap<String, Long>();
 		HashMap<String, Long> rcdCommoditySalesMap = new HashMap<String, Long>();
 
-		String siten = "支店";
-		String shouhin = "商品";
-
 		// 定義ファイルの読み込み 存在エラー フォーマットエラー チェック
-		if(!readDefFile("branch.lst", siten, branch, branchMap,rcdBranchSalesMap, "^\\d{3}$")) {
+		if(!readDefinitionFile("支店", branch, branchMap,rcdBranchSalesMap, "^\\d{3}$")) {
 			return;
 		}
-		if(!readDefFile("commodity.lst", shouhin, commodity, commodityMap,rcdCommoditySalesMap, "^\\w{8}$")) {
+		if(!readDefinitionFile("商品", commodity, commodityMap,rcdCommoditySalesMap, "^\\w{8}$")) {
 			return;
 		}
 
@@ -60,11 +57,11 @@ public class CalculateSales {
 
 		// 売上ファイルの抽出
 		for (int i = 0; i < files.length; i++) { // 配列内の要素の数だけループし一覧を取得
-			File inFile = files[i];
-			if (inFile.getName().matches("^\\d{8}.rcd$") && inFile.isFile()) { // 数字8桁かつ拡張子がrcdのファイルのみ検索
-				rcdFiles.add(inFile.getName());
-				String[] salesSplit = inFile.getName().split("\\."); 	// "."の前には\\が必要
-				salesNo.add(Integer.parseInt(salesSplit[0]));
+			File inputFile = files[i];
+			if (inputFile.getName().matches("^\\d{8}.rcd$") && inputFile.isFile()) { // 数字8桁かつ拡張子がrcdのファイルのみ検索
+				rcdFiles.add(inputFile.getName());
+				String[] rcdFileNameSplit = inputFile.getName().split("\\."); 	// "."の前には\\が必要
+				salesNo.add(Integer.parseInt(rcdFileNameSplit[0]));
 			}
 		}
 
@@ -77,24 +74,24 @@ public class CalculateSales {
 		}
 
 		// 売上ファイルの読み込み、Listへ格納
-		ArrayList<String> rcdDataList = null;
+		ArrayList<String> rcdLineList = null;
 		for (int i = 0; i < rcdFiles.size(); i++) {
-			rcdDataList = new ArrayList<String>();
+			rcdLineList = new ArrayList<String>();
 
 			// 売上ファイルの読み込み、行数とフォーマットエラー
-			if(!readRcd(dir, rcdFiles.get(i), rcdDataList)){
+			if(!readRcdFile(dir, rcdFiles.get(i), rcdLineList)){
 				return;
 			}
 
-			String branchCodes = rcdDataList.get(0);
-			String commodityCodes = rcdDataList.get(1);
-			long amount = Long.parseLong(rcdDataList.get(2));
+			String branchCodes = rcdLineList.get(0);
+			String commodityCodes = rcdLineList.get(1);
+			long amount = Long.parseLong(rcdLineList.get(2));
 
 			// 合計金額のエラーチェック
-			if(!digitCheck(rcdBranchSalesMap, branchCodes, amount, rcdFiles.get(i), siten)){
+			if(!digitCheck(rcdBranchSalesMap, branchCodes, amount, rcdFiles.get(i), "支店")){
 				return;
 			}
-			if(!digitCheck(rcdCommoditySalesMap, commodityCodes, amount, rcdFiles.get(i), shouhin)){
+			if(!digitCheck(rcdCommoditySalesMap, commodityCodes, amount, rcdFiles.get(i), "商品")){
 				return;
 			}
 		}
@@ -118,27 +115,23 @@ public class CalculateSales {
 
 	// 【メソッド】支店定義ファイルの読み込み 存在エラー フォーマットエラーチェック
 	// コードと0円を集計用Mapに格納
-	static boolean readDefFile(String lst, String str, File defFile, HashMap<String, String> codeNameMap,
+	static boolean readDefinitionFile(String branchOrCommodity, File definitionFile, HashMap<String, String> codeNameMap,
 			HashMap<String, Long> codeSalesMap, String format) {
-		if(!defFile.exists()){
-			if(defFile.getName().matches(lst)){
-				System.out.println(str + "定義ファイルが存在しません");
-				return false;
-			}
+		if(!definitionFile.exists()){
+			System.out.println(branchOrCommodity + "定義ファイルが存在しません");
+			return false;
 		}
 
 		BufferedReader br = null;
 		try {
-			br = new BufferedReader(new FileReader(defFile));
+			br = new BufferedReader(new FileReader(definitionFile));
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] Data = line.split(",");
 				// 正規表現によるフォーマットチェック
-				if(defFile.getName().matches(lst)) {
-					if (!Data[0].matches(format) || Data.length != 2) {
-					System.out.println(str + "定義ファイルのフォーマットが不正です" );
+				if (!Data[0].matches(format) || Data.length != 2) {
+					System.out.println(branchOrCommodity + "定義ファイルのフォーマットが不正です" );
 					return false;
-					}
 				}
 				codeNameMap.put(Data[0], Data[1]);
 			}
@@ -161,17 +154,17 @@ public class CalculateSales {
 	}
 
 	// 【メソッド】売上ファイルの読み込み
-	static boolean readRcd(File dir, String fileName, ArrayList<String> rcdDataList) {
+	public static boolean readRcdFile(File dir, String fileName, ArrayList<String> rcdLineList) {
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new FileReader(dir + File.separator + fileName));
 			String rcdLineInput;
 			while ((rcdLineInput = br.readLine()) != null) {
-				rcdDataList.add(rcdLineInput);
+				rcdLineList.add(rcdLineInput);
 
 			}
 			// 売上ファイルの中身が4行以上の場合のエラー
-			if((rcdDataList.size() != 3) || (!rcdDataList.get(2).matches("^\\d{0,10}$"))) {
+			if((rcdLineList.size() != 3) || (!rcdLineList.get(2).matches("^\\d{0,10}$"))) {
 				System.out.println(fileName + "のフォーマットが不正です");
 				return false;
 			}
@@ -191,16 +184,16 @@ public class CalculateSales {
 
 	// 該当コード毎に売上金額を加算
 	// 【メソッド】合計金額の桁数エラーチェック
-	static boolean digitCheck(HashMap<String, Long> codeSalesMap, String code,long amount, String fileName, String str){
+	static boolean digitCheck(HashMap<String, Long> codeSalesMap, String code,long amount, String fileName, String branchOrCommodity){
 		if (!codeSalesMap.containsKey(code)) {
-			System.out.println(fileName + "の" + str + "コードが不正です");
+			System.out.println(fileName + "の" + branchOrCommodity + "コードが不正です");
 			return false;
 		}
 		long totalAmount = codeSalesMap.get(code) + amount;
 		codeSalesMap.put(code, totalAmount);
 		// 合計金額が10桁を超えた場合のエラー
-		int keta = Long.toString(totalAmount).length();
-		if(keta > 10) {
+		int digit = Long.toString(totalAmount).length();
+		if(digit > 10) {
 			System.out.println("合計金額が10桁を超えました");
 			return false;
 		}
