@@ -227,7 +227,7 @@ public class CalculateSales {
 			FileWriter fw = new FileWriter(outputFile);
 			bw = new BufferedWriter(fw);
 			outputFile.createNewFile();
-			for (Entry<String,Long> s : sortTotalSales) { // keyとvalueを拡張for文で取得。拡張for文の位置に注意！
+			for (Entry<String,Long> s : sortTotalSales) { // keyとvalueを拡張for文で取得。拡張for文の位置に注意
 				if (codeNameMap.containsKey(s.getKey())) {
 					bw.write(s.getKey() + "," + codeNameMap.get(s.getKey()) + "," + s.getValue());
 					bw.newLine();
